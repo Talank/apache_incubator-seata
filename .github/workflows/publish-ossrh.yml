@@ -16,17 +16,23 @@
 #
 name: "Publish OSSRH"
 
-on: false
+on:
 #  push:
 #    branches: [ develop, 2.x, snapshot, "*.*.*" ]
 
+  workflow_dispatch:
 jobs:
   # job 1
   publish-to-OSSRH:
     name: "Publish to OSSRH"
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
+      matrix:
+        os:
+          - ubuntu-latest
+          - windows-latest
+          - macos-latest
     steps:
       # step 1
       - name: "Checkout"
@@ -51,5 +57,5 @@ jobs:
           OSSRH_USERNAME: ${{ secrets.OSSRH_USER }}
           OSSRH_PASSWORD: ${{ secrets.OSSRH_PASSWORD }}
           GPG_PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
-        run: |
+        run: |-
           ./mvnw -T 4C clean deploy -Prelease,release-by-github-actions -DskipTests -e -B -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn

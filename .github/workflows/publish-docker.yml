@@ -17,23 +17,20 @@
 name: "Publish Docker Image"
 
 on:
-  push:
-    branches: [ snapshot, "*.*.*" ]
-    #tags: [ "*" ]
-
-  #This schedule only takes effect in the default branch
-  schedule:
-    - cron: '0 16 * * *' #GMT+0
-
+  workflow_dispatch:
 jobs:
   # job 1
   publish-images-to-dockerhub:
     name: "Publish images to DockerHub"
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
       matrix:
-        java: [ 8, 17, 21 ]
+        java: [8, 17, 21]
+        os:
+          - ubuntu-latest
+          - windows-latest
+          - macos-15-intel
     steps:
       # step 1
       - name: "Checkout"
@@ -49,7 +46,7 @@ jobs:
         run: ./mvnw -version
       # step 4 based on java8
       - name: "Publish images to DockerHub based on java8"
-        if: matrix.java == 8
+        if: always()
         env:
           REGISTRY_USERNAME: ${{ secrets.DOCKERHUB_USER }}
           REGISTRY_PASSWORD: ${{ secrets.DOCKERHUB_TOKEN }}
@@ -61,7 +58,7 @@ jobs:
           fi
       # step 4 based on java17
       - name: "Publish images to DockerHub based on java17"
-        if: ${{ matrix.java == 17 && github.ref_name != 'develop' && github.ref_name != 'snapshot' && github.ref_name != '2.x' }}
+        if: always()
         env:
           REGISTRY_USERNAME: ${{ secrets.DOCKERHUB_USER }}
           REGISTRY_PASSWORD: ${{ secrets.DOCKERHUB_TOKEN }}
@@ -69,7 +66,7 @@ jobs:
           ./mvnw -T 4C clean package -Dimage.name=eclipse-temurin:17.0.12_7-jdk       -Pimage,release-image-based-on-java17      -DskipTests -e -B -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn;
       # step 5 based on java21
       - name: "Publish images to DockerHub based on java21"
-        if: ${{ matrix.java == 21 && github.ref_name != 'develop' && github.ref_name != 'snapshot' && github.ref_name != '2.x' }}
+        if: always()
         env:
           REGISTRY_USERNAME: ${{ secrets.DOCKERHUB_USER }}
           REGISTRY_PASSWORD: ${{ secrets.DOCKERHUB_TOKEN }}
