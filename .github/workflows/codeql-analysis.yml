@@ -17,12 +17,7 @@
 name: "CodeQL"
 
 on:
-  pull_request:
-    # The branches below must be a subset of the branches above
-    branches: [ 2.x, develop ]
-  schedule:
-    - cron: '36 19 * * 6'
-
+  workflow_dispatch:
 jobs:
   analyze:
     name: Analyze
@@ -34,7 +29,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        language: [ 'java' ]
+        language: ['java']
 
     steps:
       # step 1
