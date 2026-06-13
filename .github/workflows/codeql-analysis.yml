@@ -47,6 +47,10 @@ jobs:
           languages: ${{ matrix.language }}
 
       - run: ./mvnw -T 4C clean install -DskipTests
+        if: runner.os != 'Windows'
+
+      - run: mvnw.cmd -T 4C clean install -DskipTests
+        if: runner.os == 'Windows'
 
       # step 3
       - name: "Perform CodeQL Analysis"
