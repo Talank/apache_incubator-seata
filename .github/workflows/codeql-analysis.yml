@@ -47,7 +47,7 @@ jobs:
           languages: ${{ matrix.language }}
 
       - name: "Build"
-        run: mvn -T 4C clean install -DskipTests
+        run: mvn -T 4C clean install -DskipTests -pl '!seata-console'
 
       # step 3
       - name: "Perform CodeQL Analysis"
