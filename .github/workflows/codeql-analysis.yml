@@ -46,7 +46,8 @@ jobs:
         with:
           languages: ${{ matrix.language }}
 
-      - run: ./mvnw -T 4C clean install -DskipTests
+      - name: "Build"
+        run: mvn -T 4C clean install -DskipTests
 
       # step 3
       - name: "Perform CodeQL Analysis"
