@@ -17,10 +17,7 @@
 name: "build"
 
 on:
-  push:
-    branches: [ 2.x, develop, master ]
-  pull_request:
-    branches: [ 2.x, develop, master ]
+  workflow_dispatch:
 
 jobs:
   # job 1: Test based on java 8, 17 and 21. Do not checkstyle.
@@ -39,12 +36,16 @@ jobs:
         env:
           MODE: standalone
           SPRING_SECURITY_ENABLED: false
-        options: --health-cmd="curl -f http://localhost:8848/nacos" --health-interval=10s --health-timeout=5s --health-retries=3 --health-start-period=30s
-    runs-on: ubuntu-latest
+        options: --health-cmd="curl -f http://localhost:8848/nacos" --health-interval=10s --health-timeout=5s 
+          --health-retries=3 --health-start-period=30s
+    runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
       matrix:
-        java: [ 8, 17, 21 ]
+        java: [8, 17, 21]
+        os:
+          - ubuntu-latest
+          - ubuntu-24.04-arm
     steps:
       # step 1
       - name: "Checkout"
@@ -65,20 +66,20 @@ jobs:
         run: ./mvnw -version
       # step 5.1
       - name: "Test, Check style, Check PMD, Check license with Maven and Java8"
-        if: matrix.java == '8'
+        if: always()
         run: |
           ./mvnw -T 4C clean test \
                  -Dcheckstyle.skip=false -Dpmd.skip=false -Dlicense.skip=false -DredisCaseEnabled=true \
                  -e -B -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn;
       # step 5.2
       - name: "Test with Maven and Java${{ matrix.java }}"
-        if: matrix.java != '8'
+        if: always()
         run: |
           ./mvnw -T 4C clean test \
                  -e -B -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn;
       # step 6
       - name: "Codecov"
-        if: matrix.java == '8'
+        if: always()
         uses: codecov/codecov-action@v4.0.1
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
@@ -89,7 +90,8 @@ jobs:
   # job 2: Build on 'arm64v8/ubuntu' OS (Skip tests).
   build_arm64-binary:
     runs-on: ubuntu-latest
-    if: ${{ github.event_name == 'push' && (github.ref_name == 'develop' || github.ref_name == 'snapshot' || github.ref_name == '2.x') }}
+    if: ${{ github.event_name == 'push' && (github.ref_name == 'develop' || github.ref_name == 'snapshot' || 
+      github.ref_name == '2.x') }}
     strategy:
       fail-fast: false
     steps:
